@@ -7,7 +7,7 @@ app = Flask(__name__)
 cors= CORS(app)
 
 #cadena de conexión base datos en mongoatlas
-uri="mongodb+srv://cesarmcuellar:12345@runt.oudoapr.mongodb.net/?retryWrites=true&w=majority&appName=RUNT"
+uri="mongodb+srv://xxxx:xxx@runt.oudoapr.mongodb.net/?retryWrites=true&w=majority&appName=RUNT"
 
 app.config["UPLOAD_FOLDER"] = "./static/imagenes"
 app.config['MONGODB_SETTINGS'] = [{

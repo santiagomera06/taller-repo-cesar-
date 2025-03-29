@@ -76,6 +76,11 @@ function obtenerGenero(id){
 }
 
 
+/**
+ * Función que se encarga de hacer
+ * una petición al backend para
+ * agregar una película.
+ */
 function agregarPelicula(){
     url = "/pelicula/"
     const pelicula={
@@ -87,7 +92,6 @@ function agregarPelicula(){
         genero: document.getElementById('cbGenero').value,
         foto:''
     }
-    console.log(pelicula)
     fetch(url, {
         method: "POST",
         body: JSON.stringify(pelicula),
@@ -97,7 +101,6 @@ function agregarPelicula(){
     })
     .then(respuesta => respuesta.json())
     .then(resultado => {
-        console.log(resultado)
         if (resultado.estado) {
            location.href = "/peliculas/"
         }else{

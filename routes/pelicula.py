@@ -103,6 +103,5 @@ def listarPeliculas():
 @app.route("/vistaAgregarPelicula/", methods=['GET'])
 def vistaAgregarPelicula():
     generos = Genero.objects()
-    print(generos)
     return render_template("frmAgregarPelicula.html", generos=generos)
     
