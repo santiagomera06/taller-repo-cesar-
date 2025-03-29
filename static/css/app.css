@@ -1,0 +1,18 @@
+header{
+    height: 100px;
+}
+
+section{
+    min-height: 400px;
+}
+
+footer{
+    height: 100px;
+    
+}
+
+.iniciarSesion{
+    background-color:yellowgreen;
+    border-radius: 30px;
+    width: 28%;
+}
