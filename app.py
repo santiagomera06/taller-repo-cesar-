@@ -4,7 +4,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-CORS(app)
+cors= CORS(app)
 
 #cadena de conexión base datos en mongoatlas
 uri="mongodb+srv://cesarmcuellar:12345@runt.oudoapr.mongodb.net/?retryWrites=true&w=majority&appName=RUNT"
@@ -15,6 +15,8 @@ app.config['MONGODB_SETTINGS'] = [{
     "host": uri
      #"port": 27017
 }]
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 db = MongoEngine(app)
 
 @app.route("/")
