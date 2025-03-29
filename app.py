@@ -1,7 +1,10 @@
 from flask import Flask, render_template
 from flask_mongoengine import MongoEngine
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+CORS(app)
 
 #cadena de conexión base datos en mongoatlas
 uri="mongodb+srv://cesarmcuellar:12345@runt.oudoapr.mongodb.net/?retryWrites=true&w=majority&appName=RUNT"

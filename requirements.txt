@@ -4,6 +4,7 @@ colorama==0.4.6
 dnspython==2.7.0
 email_validator==2.2.0
 Flask==3.1.0
+flask-cors==5.0.1
 flask-mongoengine @ git+https://github.com/idoshr/flask-mongoengine.git@e244408acf440c4208f7ddcd6e5d819cb472e4da
 Flask-WTF==1.2.2
 gunicorn==23.0.0
