@@ -2,6 +2,8 @@ from app import app,db
 from flask import Flask, render_template, request, jsonify, session, redirect
 from flask_mongoengine import MongoEngine
 from models.usuario import Usuario
+from dotenv import load_dotenv
+import os
 import urllib
 import json
 
@@ -16,6 +18,7 @@ def inicio():
 @app.route("/iniciarSesion/",  methods=['POST'])
 def iniciarSesion():   
         mensaje = ""
+        secret = os.environ.get("SECRET-RECAPTCHA")
         if request.method=='POST':
             try:
                 # validar el recapthcha
@@ -23,7 +26,7 @@ def iniciarSesion():
                 recaptcha_response = request.form['g-recaptcha-response']
                 url = 'https://www.google.com/recaptcha/api/siteverify'
                 values = {
-                    'secret': '6LdYkgYrAAAAAJ9Wmt8S-YMA5dVCmspqTCHtlXUI',  # la clave secreta
+                    'secret': secret,  # la clave secreta
                     'response': recaptcha_response
                 }
                 data = urllib.parse.urlencode(values).encode()
