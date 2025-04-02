@@ -1,7 +1,8 @@
 from app import app
-from flask import request, render_template
+from flask import request, render_template, redirect, session
 from models.pelicula import Pelicula
 from models.genero import Genero
+from bson.objectid import ObjectId
 
 @app.route("/pelicula/", methods=['GET'])
 def listPelicula():
@@ -33,6 +34,7 @@ def addPelicula():
             mensaje="No permitido"   
     except Exception as error:
         mensaje=str(error) 
+        mensaje="Ya exsite película con ese código revisar."
         
     return {"estado":estado, "mensaje":mensaje}
 
@@ -64,6 +66,7 @@ def updatePelicula():
             mensaje="No permitido" 
     except Exception as error:
         mensaje=str(error)
+        mensaje="No es posible actualizar ya exsite película con ese código."
         
     return {"estado":estado, "mensaje": mensaje}
 
@@ -104,4 +107,10 @@ def listarPeliculas():
 def vistaAgregarPelicula():
     generos = Genero.objects()
     return render_template("frmAgregarPelicula.html", generos=generos)
-    
+
+@app.route("/vistaEditarPelicula/<string:id>/", methods=['GET'])
+def mostrarVistaEditarPelicula(id):    
+    pelicula = Pelicula.objects(id=ObjectId(id)).first()
+    generos = Genero.objects()
+    return render_template("frmEditarPelicula.html",pelicula=pelicula, generos=generos)        
+   

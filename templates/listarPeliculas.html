@@ -3,6 +3,7 @@
     {% include "menu.html" %}
 {%endblock %}
 {% block contenido %} 
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <div class="w-75" style="margin: 0 auto">
         <h3 class="text-center fw-bold">LISTADO DE PELÍCULAS</h3>
         <div>
@@ -34,8 +35,8 @@
                                 {%endif%}
                             {%endfor%}                           
                             <td class="text-center" style="font-size:3vh">
-                                <i class="fa fa-edit text-warning" title="Editar"></i>
-                                <i class="fa fa-trash text-danger" title="Eliminar"></i>
+                                <a href="/vistaEditarPelicula/{{p.id}}/"><i class="fa fa-edit text-warning" title="Editar"></i></a>
+                                <i class="fa fa-trash text-danger" title="Eliminar" onclick="deletePelicula('{{p.id}}')"></i>
                             </td>
                         </tr>
                     {%endfor%}

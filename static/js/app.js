@@ -104,7 +104,7 @@ function agregarPelicula(){
         if (resultado.estado) {
            location.href = "/peliculas/"
         }else{
-            swal.fire("Agregar Pelicula", resultado.mensaje, "warning")
+            swal.fire("Add Pelicula", resultado.mensaje, "warning")
         }
     })
         .catch(error => {
@@ -135,10 +135,80 @@ function agregarGenero(){
         if (resultado.estado){
             location.href="/generos/"
         }else{
-            swal.fire("Agregar Genero",resultado.mensaje,"warning")
+            swal.fire("Add Genero",resultado.mensaje,"warning")
         }
     })
     .catch(error => {
         console.error(error)
     })
+}
+
+
+function editarPelicula(id){
+    const pelicula={
+        id: id,
+        codigo: document.getElementById('txtCodigo').value,
+        titulo: document.getElementById('txtTitulo').value,
+        protagonista: document.getElementById('txtProtagonista').value,
+        duracion: document.getElementById('txtDuracion').value,
+        resumen: document.getElementById('txtResumen').value,
+        genero: document.getElementById('cbGenero').value,
+        foto:''
+    }
+    const url= "/pelicula/"
+    fetch(url, {
+        method: "PUT",
+        body: JSON.stringify(pelicula),
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+    .then(respuesta => respuesta.json())
+    .then(resultado => {       
+        if (resultado.estado){
+            location.href="/peliculas/"
+        }else{
+            swal.fire("Edit Pelicula",resultado.mensaje,"warning")
+        }
+    })
+    .catch(error => {
+        console.error(error)
+    })
+
+
+}
+
+function deletePelicula(id){
+    Swal.fire({
+        title: "¿Está usted seguro de querer eliminar el producto",
+        showDenyButton: true,
+        confirmButtonText: "SI",
+        denyButtonText: "NO"
+    }).then((result) => {
+        /* Read more about isConfirmed, isDenied below */
+        if (result.isConfirmed) {
+            const pelicula={
+                id: id,
+            }
+            const url= "/pelicula/"
+            fetch(url, {
+                method: "DELETE",
+                body: JSON.stringify(pelicula),
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            })
+            .then(respuesta => respuesta.json())
+            .then(resultado => {       
+                if (resultado.estado){
+                    location.href="/peliculas/"
+                }else{
+                    swal.fire("Delete Pelicula",resultado.mensaje,"warning")
+                }
+            })
+            .catch(error => {
+                console.error(error)
+            })
+        }
+    });
 }

@@ -1,5 +1,5 @@
 from app import app
-from flask import request, render_template
+from flask import request, render_template, session
 from models.genero import Genero
 from models.pelicula import Pelicula
 
@@ -37,6 +37,7 @@ def addGenero():
             mensaje="No permitido"    
     except Exception as error:
         mensaje=str(error) 
+        mensaje="Ya existe género con es nombre. Verficar."
         
     return {"estado":estado, "mensaje":mensaje}
 
@@ -58,6 +59,7 @@ def updateGenero():
             mensaje="No permitido" 
     except Exception as error:
         mensaje=str(error)
+        mensaje="No es posible actualizar. Ya existe un género con ese nombre"
         
     return {"estado":estado, "mensaje": mensaje}
 

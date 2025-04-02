@@ -82,3 +82,16 @@ Content-Type: application/json
 {
     "id": "67e472f390be26b203f5c82c"
 }
+
+### agregar usuario
+
+POST http://127.0.0.1:5000/usuario/ 
+Content-Type: application/json
+
+{
+    "usuario": "ccuellar",
+    "password": "12345",
+    "nombres": "César Marino",
+    "apellidos": "Cuéllar Chacón",
+    "correo": "cesarmcuellar@gmail.com"
+}
