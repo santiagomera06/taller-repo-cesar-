@@ -20,7 +20,7 @@ app.config['MONGODB_SETTINGS'] = [{
     "host": uri
      #"port": 27017
 }]
-##app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 db = MongoEngine(app)
 
