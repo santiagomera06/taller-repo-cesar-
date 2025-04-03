@@ -93,15 +93,23 @@ def deleteGenero():
 
 @app.route("/generos/", methods=['GET'])
 def listarGeneros():
-    try:
-        mensaje=""
-        generos=Genero.objects()        
-    except Exception as error:
-        mensaje=str(error)
-    
-    return render_template("listarGeneros.html",
-                           generos=generos,mensaje=mensaje)
+    if("user" in session):
+        try:
+            mensaje=""
+            generos=Genero.objects()        
+        except Exception as error:
+            mensaje=str(error)
+        
+        return render_template("listarGeneros.html",
+                            generos=generos,mensaje=mensaje)
+    else:
+        mensaje="Debe primero ingresar con credenciales válidas"
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)
     
 @app.route("/vistaGenero/", methods=['GET'])
 def vistaGenero():
-    return render_template("frmAgregarGenero.html")
+    if("user" in session):
+        return render_template("frmAgregarGenero.html")
+    else:
+        mensaje="Debe primero ingresar con credenciales válidas"
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)

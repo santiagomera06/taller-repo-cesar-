@@ -1,5 +1,5 @@
 from app import app,db
-from flask import Flask, render_template, request, jsonify, session, redirect
+from flask import Flask, render_template, request, session
 from flask_mongoengine import MongoEngine
 from models.usuario import Usuario
 from dotenv import load_dotenv
@@ -8,12 +8,28 @@ import urllib
 import json
 
 
-
-
 @app.route("/")
 def inicio():
     return render_template("frmIniciarSesion.html")
 
+
+@app.route("/iniciarSesion2/",  methods=['POST'])
+def iniciarSesion2():   
+    mensaje = ""       
+    if request.method=='POST':
+        try:          
+            username=request.form['txtUser']
+            password=request.form['txtPassword'] 
+            usuario = Usuario.objects(usuario=username,password=password).first()
+            if usuario:
+                session['user']=username
+                return render_template("contenido.html")
+            else:
+                mensaje="Credenciales no válidas"
+        except Exception as error:
+            mensaje=str(error)
+    
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)
 
 @app.route("/iniciarSesion/",  methods=['POST'])
 def iniciarSesion():   
@@ -70,6 +86,15 @@ def addUsuario():
         mensaje=str(error) 
         
     return {"estado":estado, "mensaje":mensaje}
+
+
+@app.route("/home/")
+def home():
+    if("user" in session):
+        return render_template("contenido.html")
+    else:
+        mensaje="Debe primero ingresar con credenciales válidas"
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)
 
 @app.route("/salir/")
 def exit():

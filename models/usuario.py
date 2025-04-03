@@ -1,5 +1,4 @@
 from mongoengine import *
-#from app import db
 
 class Usuario(Document):
     usuario = StringField(max_length=50, required=True, unique=True)
@@ -7,6 +6,9 @@ class Usuario(Document):
     nombres = StringField(max_length=50,required=True)
     apellidos = StringField(max_length=50,required=True)
     correo = EmailField(required=True, unique=True)
+    
+    def __repr__(self):
+        return f"{self.nombres} {self.apellidos}"
 
 
 

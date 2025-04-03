@@ -95,22 +95,37 @@ def deletePelicula():
 
 @app.route("/peliculas/", methods=['GET'])
 def listarPeliculas():
-    peliculas = Pelicula.objects()
-    generos = Genero.objects()
-    print(generos)
-    return render_template("listarPeliculas.html", 
-                           peliculas=peliculas,
-                           generos=generos)
+    if ("user" in session):
+        peliculas = Pelicula.objects()
+        generos = Genero.objects()
+        print(generos)
+        return render_template("listarPeliculas.html", 
+                            peliculas=peliculas,
+                            generos=generos)
+    else:
+        mensaje="Debe primero ingresar con credenciales válidas"
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)
+        
 
 
 @app.route("/vistaAgregarPelicula/", methods=['GET'])
 def vistaAgregarPelicula():
-    generos = Genero.objects()
-    return render_template("frmAgregarPelicula.html", generos=generos)
+    if ("user" in session):
+        generos = Genero.objects()
+        return render_template("frmAgregarPelicula.html", generos=generos)
+    else:
+        mensaje="Debe primero ingresar con credenciales válidas"
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)
+        
 
 @app.route("/vistaEditarPelicula/<string:id>/", methods=['GET'])
-def mostrarVistaEditarPelicula(id):    
-    pelicula = Pelicula.objects(id=ObjectId(id)).first()
-    generos = Genero.objects()
-    return render_template("frmEditarPelicula.html",pelicula=pelicula, generos=generos)        
+def mostrarVistaEditarPelicula(id):  
+    if ("user" in session):  
+        pelicula = Pelicula.objects(id=ObjectId(id)).first()
+        generos = Genero.objects()
+        return render_template("frmEditarPelicula.html",
+                               pelicula=pelicula, generos=generos) 
+    else:
+        mensaje="Debe primero ingresar con credenciales válidas"
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)     
    
