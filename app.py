@@ -7,7 +7,6 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-cors= CORS(app)
 app.secret_key = "1234567890aeiou"
 
 #cadena de conexión base datos en mongoatlas
@@ -25,11 +24,11 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 db = MongoEngine(app)
 
 
-
+from routes.usuario import *
+from routes.genero import *
+from routes.pelicula import *
 if __name__ == "__main__":
-    from routes.usuario import *
-    from routes.genero import *
-    from routes.pelicula import *
+    
     app.run(port=5000, host="0.0.0.0", debug=True)
 
 
