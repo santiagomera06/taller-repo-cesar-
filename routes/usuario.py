@@ -13,8 +13,8 @@ def inicio():
     return render_template("frmIniciarSesion.html")
 
 
-@app.route("/iniciarSesion2/",  methods=['POST'])
-def iniciarSesion2():   
+@app.route("/iniciarSesion/",  methods=['POST'])
+def iniciarSesion():   
     mensaje = ""       
     if request.method=='POST':
         try:          
@@ -31,8 +31,8 @@ def iniciarSesion2():
     
         return render_template("frmIniciarSesion.html", mensaje=mensaje)
 
-@app.route("/iniciarSesion/",  methods=['POST'])
-def iniciarSesion():   
+@app.route("/iniciarSesion2/",  methods=['POST'])
+def iniciarSesion2():   
         mensaje = ""
         secret = os.environ.get("SECRET-RECAPTCHA")
         if request.method=='POST':
