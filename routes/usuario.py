@@ -1,20 +1,25 @@
-from app import app,db
-from flask import Flask, render_template, request, session
-from flask_mongoengine import MongoEngine
+from app import app,db, recaptcha
+from flask import render_template, request, session, redirect
 from models.usuario import Usuario
 from dotenv import load_dotenv
 import os
-import urllib
-import json
+import yagmail
+import threading
 
+load_dotenv()
 
 @app.route("/")
 def inicio():
     return render_template("frmIniciarSesion.html")
 
+def enviarCorreo(email=None, destinatario=None, asunto=None, mensaje=None):
+    try:
+        email.send(to=destinatario, subject=asunto, contents=mensaje)
+    except Exception as error:
+        print(str(error))
 
-@app.route("/iniciarSesion/",  methods=['POST'])
-def iniciarSesion():   
+@app.route("/iniciarSesion2/",  methods=['POST'])
+def iniciarSesion2():   
     mensaje = ""       
     if request.method=='POST':
         try:          
@@ -23,7 +28,16 @@ def iniciarSesion():
             usuario = Usuario.objects(usuario=username,password=password).first()
             if usuario:
                 session['user']=username
-                return render_template("contenido.html")
+                session['user_name']=f"{usuario.nombres} {usuario.apellidos}"
+                email = yagmail.SMTP("cesarmcuellar@gmail.com","zwakhypmhtqqdnqe", 
+                                     encoding="utf-8")
+                asunto = "Ingreso al Sistema"
+                mensaje = f"Cordial saludo {usuario.nombres} {usuario.apellidos}. \
+                           Bienvenido a nuestro aplicativo"
+                thread = threading.Thread(target=enviarCorreo,
+                                          args=(email, usuario.correo, asunto, mensaje))
+                thread.start()
+                return redirect("/home/")
             else:
                 mensaje="Credenciales no válidas"
         except Exception as error:
@@ -31,45 +45,43 @@ def iniciarSesion():
     
         return render_template("frmIniciarSesion.html", mensaje=mensaje)
 
-@app.route("/iniciarSesion2/",  methods=['POST'])
-def iniciarSesion2():   
-        mensaje = ""
-        secret = os.environ.get("SECRET-RECAPTCHA")
-        if request.method=='POST':
-            try:
-                # validar el recapthcha
-                """Begin reCAPTCHA validation"""
-                recaptcha_response = request.form['g-recaptcha-response']
-                url = 'https://www.google.com/recaptcha/api/siteverify'
-                values = {
-                    'secret': secret,  # la clave secreta
-                    'response': recaptcha_response
-                }
-                data = urllib.parse.urlencode(values).encode()
-                req = urllib.request.Request(url, data=data)
-                response = urllib.request.urlopen(req)
-                result = json.loads(response.read().decode())
-                # End reCAPTCHA validation """
-                print(result)
-                if result['success']:   
-                    print("Ingresé")        
-                    username=request.form['txtUser']
-                    password=request.form['txtPassword'] 
-                    usuario = Usuario.objects(usuario=username,password=password).first()
-                    if usuario:
-                        print("hay usuario")
-                        session['user']=username
-                        print(session['user'])
-                        return render_template("contenido.html")
-                    else:
-                        mensaje="Credenciales no válidas"
+
+
+
+@app.route("/iniciarSesion/",  methods=['POST'])
+def iniciarSesion():   
+    mensaje = ""
+    try:    
+        if request.method=='POST':               
+            if recaptcha.verify():           
+                username=request.form['txtUser']
+                password=request.form['txtPassword'] 
+                usuario = Usuario.objects(usuario=username,password=password).first()
+                if usuario:
+                    session['user']=username
+                    session['name_user']=f"{usuario.nombres} {usuario.apellidos}"
+                    email = yagmail.SMTP("cesarmcuellar@gmail.com",os.environ.get("PASSWORD-ENVIAR-CORREO"), 
+                                     encoding="utf-8")
+                    asunto = "Ingreso al Sistema"
+                    mensaje = f"Cordial saludo <b>{usuario.nombres} {usuario.apellidos}.</b> \
+                            Bienvenido a nuestro aplicativo Gestión peliculas. \
+                            Enviamos Manual de usuario del aplicativo en formato pdf.<br><br>\
+                            Cordialmente,<br><br><br> \
+                            <b>Administración<br>Aplicativo Gestión Películas.</b>"
+                    thread = threading.Thread(target=enviarCorreo,
+                                            args=(email, [usuario.correo,"ccuellar@sena.edu.co"], asunto, [mensaje,"Manual.pdf"]))
+                    thread.start()
+                    return redirect("/home/")
                 else:
-                    mensaje = "Debe validar primero el recaptcha"
-              
-            except Exception as error:
-                mensaje=str(error)
+                    mensaje="Credenciales no válidas"
+            else:
+                mensaje = "Debe validar primero el recaptcha"
+        else:
+            mensaje="No permitido"
+    except Exception as error:
+        mensaje=str(error)
     
-            return render_template("frmIniciarSesion.html", mensaje=mensaje)
+    return render_template("frmIniciarSesion.html", mensaje=mensaje)
 
 @app.route("/usuario/", methods=['POST'])
 def addUsuario():
