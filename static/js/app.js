@@ -217,7 +217,14 @@ function editarPelicula(id){
         .then(respuesta => respuesta.json())
         .then(resultado => {       
             if (resultado.estado){
-                location.href="/peliculas/"
+                Swal.fire({
+                    position: "top-end",
+                    icon: "success",
+                    title: resultado.mensaje,
+                    showConfirmButton: false,
+                    timer: 2000
+                  })
+                  location.href="/peliculas/"
             }else{
                 swal.fire("Edit Pelicula",resultado.mensaje,"warning")
             }
