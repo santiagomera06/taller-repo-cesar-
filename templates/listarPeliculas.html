@@ -3,14 +3,17 @@
     {% include "menu.html" %}
 {%endblock %}
 {% block contenido %} 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css">
+<script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <div class="w-75" style="margin: 0 auto">
         <h3 class="text-center fw-bold">LISTADO DE PELÍCULAS</h3>
         <div>
             <a href="/vistaAgregarPelicula/"><button class="btn btn-secondary">Agregar</button></a>
         </div>
-        <DIV>
-            <table id="tbPeliculas" class="table table-bordered mt-2" >
+        <div>
+            <table id="tbPeliculas" class="table table-bordered mt-2">
                 <thead class="table-secondary text-center">
                     <tr>
                         <th>Código</th>
@@ -28,7 +31,7 @@
                             <td>{{p.titulo}}</td>
                             <td>{{p.duracion}}</td>
                             <td>{{p.protagonista}}</td>
-                            <!--ontener nombre de genero a partir del id-->                          
+                            <!--Obtener nombre de genero a partir del id-->                          
                             {% for g in generos %}                               
                                 {% if g.id == p.genero.id %}
                                     <td>{{g.nombre}}</td>
@@ -38,17 +41,25 @@
                                 <a href="/vistaEditarPelicula/{{p.id}}/">
                                     <i class="fa fa-edit text-warning" title="Editar"></i>
                                 </a>
-
                                 <i class="fa fa-trash text-danger" title="Eliminar" 
-                                onclick="deletePelicula('{{p.id}}')"></i>
-                                
+   onclick="deletePelicula('{{p.id}}')" 
+   style="cursor: pointer;"></i>
                             </td>
                         </tr>
                     {%endfor%}
                 </tbody>
             </table>
-        </DIV>        
+        </div>        
     </div>
+    <script>
+        $(document).ready(function() {
+            $('#tbPeliculas').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/2.0.3/i18n/es-ES.json'  // URL actualizada
+                }
+            });
+        });
+    </script>
 {%endblock %}
 {% block piePagina %} 
     {% include "piePagina.html" %}

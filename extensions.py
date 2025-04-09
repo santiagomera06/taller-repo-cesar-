@@ -1,7 +1,6 @@
-from flask_mail import Mail
+# extensions.py
 from flask_mongoengine import MongoEngine
-from flask_recaptcha import ReCaptcha
+from google_recaptcha_flask import ReCaptcha
 
-mail = Mail()
 db = MongoEngine()
 recaptcha = ReCaptcha()

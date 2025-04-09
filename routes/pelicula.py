@@ -73,21 +73,23 @@ def updatePelicula():
 @app.route("/pelicula/", methods=['DELETE'])
 def deletePelicula():
     try:
-        mensaje=None
-        estado=True
-        if request.method=="DELETE":
-            datos=request.get_json(force=True)
-            pelicula=Pelicula.objects(id=datos['id']).first()
-            if(pelicula is None):
-                mensaje="No es posible eliminar pelicula con ese id"
+        mensaje = None
+        estado = False  # Cambiado de True a False (debe ser False por defecto)
+        if request.method == "DELETE":
+            datos = request.get_json(force=True)
+            pelicula = Pelicula.objects(id=datos['id']).first()
+            
+            if pelicula is None:
+                mensaje = "No existe película con ese ID"
             else:
                 pelicula.delete()
-                estado=True
-                mensaje="Pelicula Eliminada correctamente"            
+                estado = True
+                mensaje = "Película eliminada correctamente"
         else:
-            mensaje="No permitido"  
+            mensaje = "Método no permitido"
+            
     except Exception as error:
-        mensaje=str(error)
+        mensaje = f"Error al eliminar la película: {str(error)}"
         
     return {"estado": estado, "mensaje": mensaje}
 

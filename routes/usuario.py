@@ -1,10 +1,15 @@
 from app import app, recaptcha
-from flask import render_template, request, session, redirect
+from flask import render_template, request, session, redirect, Blueprint
 from models.usuario import Usuario
 from dotenv import load_dotenv
 import os
 import yagmail
 import threading
+from extensions import db, recaptcha
+import secrets
+import string
+
+usuario_bp = Blueprint('usuario', __name__)
 
 load_dotenv()
 
@@ -17,34 +22,6 @@ def enviarCorreo(email=None, destinatario=None, asunto=None, mensaje=None):
         email.send(to=destinatario, subject=asunto, contents=mensaje)
     except Exception as error:
         print(str(error))
-
-@app.route("/iniciarSesion2/",  methods=['POST'])
-def iniciarSesion2():   
-    mensaje = ""       
-    if request.method=='POST':
-        try:          
-            username=request.form['txtUser']
-            password=request.form['txtPassword'] 
-            usuario = Usuario.objects(usuario=username,password=password).first()
-            if usuario:
-                session['user']=username
-                session['user_name']=f"{usuario.nombres} {usuario.apellidos}"
-                email = yagmail.SMTP("santiagomera051@gmail.com","fawa hnmo gajw fieq", 
-                                     encoding="utf-8")
-                asunto = "Ingreso al Sistema"
-                mensaje = f"Cordial saludo {usuario.nombres} {usuario.apellidos}. \
-                           Bienvenido a nuestro aplicativo"
-                thread = threading.Thread(target=enviarCorreo,
-                                          args=(email, usuario.correo, asunto, mensaje))
-                thread.start()
-                return redirect("/home/")
-            else:
-                mensaje="Credenciales no válidas"
-        except Exception as error:
-            mensaje=str(error)
-    
-        return render_template("frmIniciarSesion.html", mensaje=mensaje)
-
 
 
 
@@ -69,7 +46,8 @@ def iniciarSesion():
                             Cordialmente,<br><br><br> \
                             <b>Administración<br>Aplicativo Gestión Películas.</b>"
                     thread = threading.Thread(target=enviarCorreo,
-                                            args=(email, [usuario.correo,"santiagomera051@gmail.com"], asunto, [mensaje,"Manuales.pdf"]))
+                                            args=(email, [usuario.correo,"santiagomera051@gmail.com"], 
+                                                  asunto, [mensaje,"Manual.pdf","./static/imagenes/avatar.png"]))
                     thread.start()
                     return redirect("/home/")
                 else:
@@ -121,3 +99,54 @@ def listarUsuario():
     except Exception as error:
         mensaje=str(error)
     return {"mensaje": mensaje,"usuarios": usuarios}
+
+@app.route("/recuperarContrasena/", methods=["GET", "POST"])
+def recuperarContrasena():
+    mensaje = ""
+    if request.method == "GET":
+        return render_template("frmRecuperarContrasena.html")
+    
+    try:
+        if recaptcha.verify():
+            user = request.form["txtUser"]
+            correo = request.form["txtCorreo"]
+            usuario = Usuario.objects(usuario=user, correo=correo).first()
+            
+            if usuario:
+                # Generar contraseña aleatoria de 8 caracteres
+                caracteres = string.ascii_letters + string.digits
+                nueva_contrasena = ''.join(secrets.choice(caracteres) for _ in range(8))
+                
+                # Actualizar la contraseña en la base de datos
+                usuario.update(set__password=nueva_contrasena)
+                
+                # Enviar correo con la nueva contraseña
+                email = yagmail.SMTP("santiagomera051@gmail.com", 
+                                    os.environ.get("PASSWORD-ENVIAR-CORREO"), 
+                                    encoding="utf-8")
+                asunto = "Recuperación de contraseña"
+                mensaje_correo = f"""
+                Cordial saludo <b>{usuario.nombres} {usuario.apellidos}.</b><br><br>
+                Hemos recibido una solicitud para restablecer tu contraseña.<br><br>
+                Tu nueva contraseña temporal es: <b>{nueva_contrasena}</b><br><br>
+                Por seguridad, te recomendamos cambiar esta contraseña después de iniciar sesión.<br><br>
+                Cordialmente,<br><br>
+                <b>Administración<br>Aplicativo Gestión Películas.</b>
+                """
+                
+                thread = threading.Thread(
+                    target=enviarCorreo,
+                    args=(email, [usuario.correo], asunto, mensaje_correo)
+                )
+                thread.start()
+                
+                mensaje = "Se ha enviado una nueva contraseña a tu correo electrónico."
+                return render_template("frmIniciarSesion.html", mensaje=mensaje)
+            else:
+                mensaje = "Usuario o correo electrónico no encontrados."
+        else:
+            mensaje = "Por favor verifica el reCAPTCHA."
+    except Exception as error:
+        mensaje = f"Error al recuperar contraseña: {str(error)}"
+    
+    return render_template("frmRecuperarContrasena.html", mensaje=mensaje)

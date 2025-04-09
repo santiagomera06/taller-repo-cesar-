@@ -23,14 +23,15 @@
                     <tr>
                         <td width="80%">{{genero.nombre}}</td>
                         <td class="text-center">
-                            <i class="fa fa-edit text-warning"></i>
-                            <i class="fa fa-trash text-danger"></i>
+                            <i class="fa fa-edit text-warning" onclick="editarGenero('{{genero.id}}')" style="cursor: pointer;"></i>
+                            <i class="fa fa-trash text-danger" onclick="eliminarGenero('{{genero.id}}')" style="cursor: pointer;"></i>
                         </td>
                     </tr>
                 {% endfor%}
             </tbody>
         </table>
     </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 {%endblock%}
 {%block piePagina%}
     {% include "piePagina.html" %}
