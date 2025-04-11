@@ -4,6 +4,16 @@ from models.pelicula import Pelicula
 from models.genero import Genero
 from bson.objectid import ObjectId
 
+from werkzeug.utils import secure_filename
+import os
+
+# Define allowed file extensions
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route("/pelicula/", methods=['GET'])
 def listPelicula():
     try:   
@@ -17,64 +27,130 @@ def listPelicula():
 @app.route("/pelicula/", methods=['POST'])
 def addPelicula():
     try:
-        mensaje=None
-        estado=False
-        if request.method=="POST":
-            datos= request.get_json(force=True)           
-            genero= Genero.objects(id=datos['genero']).first() 
-            if genero is None:
-                mensaje="Genero no existe no se puede crear la pelicula"
-            else: 
-                datos['genero'] = genero     
-                pelicula = Pelicula(**datos)
-                pelicula.save()
-                estado=True
-                mensaje="Pelicula agregada correctamente" 
-        else:
-            mensaje="No permitido"   
-    except Exception as error:
-        mensaje=str(error) 
-        mensaje="Ya exsite película con ese código revisar."
+        mensaje = None
+        estado = False
         
-    return {"estado":estado, "mensaje":mensaje}
+        if request.method == "POST":
+            # Verificar si ya existe una película con el mismo código
+            codigo = request.form['txtCodigo']
+            existe_pelicula = Pelicula.objects(codigo=codigo).first()
+            if existe_pelicula:
+                return {"estado": False, "mensaje": "Ya existe una película con ese código"}
+            
+            # Procesar los datos del formulario
+            titulo = request.form['txtTitulo']
+            duracion = request.form['txtDuracion']
+            protagonista = request.form['txtProtagonista']
+            genero_id = request.form['cbGenero']
+            resumen = request.form['txtResumen']
+            
+            # Validar género
+            genero = Genero.objects(id=genero_id).first()
+            if not genero:
+                return {"estado": False, "mensaje": "Género no válido"}
+            
+            # Procesar la imagen
+            nombreFotoServidor = None
+            if 'fileFoto' in request.files:
+                foto = request.files['fileFoto']
+                if foto.filename != '':
+                    if not allowed_file(foto.filename):
+                        return {"estado": False, "mensaje": "Formato de imagen no permitido"}
+                    
+                    filename = secure_filename(foto.filename)
+                    extension = filename.rsplit('.', 1)[1].lower()
+                    nombreFotoServidor = f"pelicula_{codigo}.{extension}"
+                    rutaFoto = os.path.join(app.config['UPLOAD_FOLDER'], nombreFotoServidor)
+                    foto.save(rutaFoto)
+            
+            # Crear y guardar la película
+            pelicula = Pelicula(
+                codigo=codigo,
+                titulo=titulo,
+                duracion=duracion,
+                protagonista=protagonista,
+                genero=genero,
+                resumen=resumen,
+                foto=nombreFotoServidor
+            )
+            pelicula.save()
+            
+            estado = True
+            mensaje = "Película agregada correctamente"
+            
+    except Exception as error:
+        mensaje = f"Error al agregar la película: {str(error)}"
+        
+    return {"estado": estado, "mensaje": mensaje}
 
 
 @app.route("/pelicula/", methods=['PUT'])
 def updatePelicula():
     try:
-        mensaje=None
-        estado=False
-        if request.method=='PUT':
-            datos= request.get_json(force=True)
-            #obtener pelicula por id
-            pelicula = Pelicula.objects(id=datos['id']).first()
-            #actualizar sus atributos
-            pelicula.codigo = datos['codigo']
-            pelicula.titulo=datos['titulo']
-            pelicula.protagonista= datos['protagonista']
-            pelicula.resumen = datos['resumen']
-            pelicula.foto=datos['foto']
-            genero = Genero.objects(id=datos['genero']).first()
-            if genero is None:
-                mensaje="No se actualizó el genero."
-            else:
-                pelicula.genero=genero
-            pelicula.save()
-            mensaje = f"{mensaje} Pelicula Actualizada"
-            estado=True            
-        else:
-            mensaje="No permitido" 
-    except Exception as error:
-        mensaje=str(error)
-        mensaje="No es posible actualizar ya exsite película con ese código."
+        mensaje = None
+        estado = False
         
-    return {"estado":estado, "mensaje": mensaje}
-
+        if request.method == 'PUT':
+            # Obtener datos del formulario
+            id_pelicula = request.form['id']
+            codigo = request.form['txtCodigo']
+            
+            # Obtener la película a actualizar
+            pelicula = Pelicula.objects(id=ObjectId(id_pelicula)).first()
+            if not pelicula:
+                return {"estado": False, "mensaje": "Película no encontrada"}
+            
+            # Verificar si el nuevo código ya existe en otra película
+            if codigo != pelicula.codigo:
+                existe_pelicula = Pelicula.objects(codigo=codigo).first()
+                if existe_pelicula:
+                    return {"estado": False, "mensaje": "Ya existe una película con ese código"}
+            
+            # Actualizar campos básicos
+            pelicula.codigo = codigo
+            pelicula.titulo = request.form['txtTitulo']
+            pelicula.duracion = request.form['txtDuracion']
+            pelicula.protagonista = request.form['txtProtagonista']
+            pelicula.resumen = request.form['txtResumen']
+            
+            # Actualizar género
+            genero_id = request.form['cbGenero']
+            genero = Genero.objects(id=genero_id).first()
+            if genero:
+                pelicula.genero = genero
+            
+            # Manejar la imagen
+            if 'fileFoto' in request.files:
+                foto = request.files['fileFoto']
+                if foto.filename != '':
+                    # Eliminar la imagen anterior si existe
+                    if pelicula.foto:
+                        try:
+                            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], pelicula.foto))
+                        except:
+                            pass
+                    
+                    # Guardar la nueva imagen
+                    filename = secure_filename(foto.filename)
+                    extension = filename.rsplit('.', 1)[1].lower()
+                    nombreFotoServidor = f"pelicula_{codigo}.{extension}"
+                    rutaFoto = os.path.join(app.config['UPLOAD_FOLDER'], nombreFotoServidor)
+                    foto.save(rutaFoto)
+                    pelicula.foto = nombreFotoServidor
+            
+            pelicula.save()
+            estado = True
+            mensaje = "Película actualizada correctamente"
+            
+    except Exception as error:
+        mensaje = f"Error al actualizar la película: {str(error)}"
+        
+    return {"estado": estado, "mensaje": mensaje}
 @app.route("/pelicula/", methods=['DELETE'])
 def deletePelicula():
     try:
         mensaje = None
-        estado = False  # Cambiado de True a False (debe ser False por defecto)
+        estado = False
         if request.method == "DELETE":
             datos = request.get_json(force=True)
             pelicula = Pelicula.objects(id=datos['id']).first()
@@ -82,6 +158,13 @@ def deletePelicula():
             if pelicula is None:
                 mensaje = "No existe película con ese ID"
             else:
+                # Eliminar la imagen asociada si existe
+                if pelicula.foto:
+                    try:
+                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], pelicula.foto))
+                    except:
+                        pass
+                
                 pelicula.delete()
                 estado = True
                 mensaje = "Película eliminada correctamente"
@@ -92,7 +175,6 @@ def deletePelicula():
         mensaje = f"Error al eliminar la película: {str(error)}"
         
     return {"estado": estado, "mensaje": mensaje}
-
 #vistas
 
 @app.route("/peliculas/", methods=['GET'])
@@ -110,24 +192,113 @@ def listarPeliculas():
         
 
 
-@app.route("/vistaAgregarPelicula/", methods=['GET'])
+@app.route("/vistaAgregarPelicula/", methods=['GET', 'POST'])
 def vistaAgregarPelicula():
-    if ("user" in session):
+    if "user" not in session:
+        mensaje = "Debe primero ingresar con credenciales válidas"
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)
+    
+    if request.method == 'GET':
         generos = Genero.objects()
         return render_template("frmAgregarPelicula.html", generos=generos)
-    else:
-        mensaje="Debe primero ingresar con credenciales válidas"
-        return render_template("frmIniciarSesion.html", mensaje=mensaje)
+    
+    elif request.method == 'POST':
+        try:
+            codigo = request.form['txtCodigo']
+            titulo = request.form['txtTitulo']
+            duracion = request.form['txtDuracion']
+            protagonista = request.form['txtProtagonista']
+            genero_id = request.form['cbGenero']
+            resumen = request.form['txtResumen']
+            foto = request.files['fileFoto']
+            
+            genero = Genero.objects(id=genero_id).first()
+            if not genero:
+                return render_template("frmAgregarPelicula.html", 
+                                    generos=Genero.objects(),
+                                    mensaje="Género no válido")
+            
+            # Procesar la imagen
+            if foto and allowed_file(foto.filename):
+                filename = secure_filename(foto.filename)
+                extension = filename.rsplit('.', 1)[1].lower()
+                nombreFotoServidor = f"pelicula_{codigo}.{extension}"
+                rutaFoto = os.path.join(app.config['UPLOAD_FOLDER'], nombreFotoServidor)
+                foto.save(rutaFoto)
+            else:
+                nombreFotoServidor = None
+            
+            pelicula = Pelicula(
+                codigo=codigo,
+                titulo=titulo,
+                duracion=duracion,
+                protagonista=protagonista,
+                genero=genero,
+                resumen=resumen,
+                foto=nombreFotoServidor
+            )
+            pelicula.save()
+            
+            return redirect("/peliculas/")
+            
+        except Exception as error:
+            return render_template("frmAgregarPelicula.html", 
+                                generos=Genero.objects(),
+                                mensaje=str(error))
         
 
-@app.route("/vistaEditarPelicula/<string:id>/", methods=['GET'])
+@app.route("/vistaEditarPelicula/<string:id>/", methods=['GET', 'POST'])
 def mostrarVistaEditarPelicula(id):  
-    if ("user" in session):  
-        pelicula = Pelicula.objects(id=ObjectId(id)).first()
+    if "user" not in session:
+        mensaje = "Debe primero ingresar con credenciales válidas"
+        return render_template("frmIniciarSesion.html", mensaje=mensaje)
+    
+    pelicula = Pelicula.objects(id=ObjectId(id)).first()
+    if not pelicula:
+        return redirect("/peliculas/")
+    
+    if request.method == 'GET':
         generos = Genero.objects()
         return render_template("frmEditarPelicula.html",
-                               pelicula=pelicula, generos=generos) 
-    else:
-        mensaje="Debe primero ingresar con credenciales válidas"
-        return render_template("frmIniciarSesion.html", mensaje=mensaje)     
+                            pelicula=pelicula, generos=generos)
+    
+    elif request.method == 'POST':
+        try:
+            pelicula.codigo = request.form['txtCodigo']
+            pelicula.titulo = request.form['txtTitulo']
+            pelicula.duracion = request.form['txtDuracion']
+            pelicula.protagonista = request.form['txtProtagonista']
+            pelicula.resumen = request.form['txtResumen']
+            
+            genero_id = request.form['cbGenero']
+            genero = Genero.objects(id=genero_id).first()
+            if genero:
+                pelicula.genero = genero
+            
+            foto = request.files['fileFoto']
+            if foto and allowed_file(foto.filename):
+                # Eliminar la foto anterior si existe
+                if pelicula.foto:
+                    try:
+                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], pelicula.foto))
+                    except:
+                        pass
+                
+                # Guardar la nueva foto
+                filename = secure_filename(foto.filename)
+                extension = filename.rsplit('.', 1)[1].lower()
+                nombreFotoServidor = f"pelicula_{pelicula.codigo}.{extension}"
+                rutaFoto = os.path.join(app.config['UPLOAD_FOLDER'], nombreFotoServidor)
+                foto.save(rutaFoto)
+                pelicula.foto = nombreFotoServidor
+            
+            pelicula.save()
+            
+            return redirect("/peliculas/")
+            
+        except Exception as error:
+            generos = Genero.objects()
+            return render_template("frmEditarPelicula.html",
+                                pelicula=pelicula, generos=generos,
+                                mensaje=str(error))
    

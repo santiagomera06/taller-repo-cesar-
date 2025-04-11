@@ -9,10 +9,18 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = "1234567890aeiou"
 
+# Configuración para subir archivos
+UPLOAD_FOLDER = 'static/imagenes'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Configuración de MongoDB Compass
+
+app.config['MONGODB_SETTINGS'] = {'host': 'mongodb://localhost:27017/GestionPelicula'}
+    
+
 # Configuración de MongoDB Atlas
-app.config['MONGODB_SETTINGS'] = {
-    'host': 'mongodb+srv://santiagomera051:H5MPTVg7ssuOZCNB@cluster0.fdx1n.mongodb.net/GestionPelicula?retryWrites=true&w=majority&appName=Cluster0'
-}
+#app.config['MONGODB_SETTINGS'] = {'host': 'mongodb+srv://santiagomera051:H5MPTVg7ssuOZCNB@cluster0.fdx1n.mongodb.net/GestionPelicula?retryWrites=true&w=majority&appName=Cluster0'}
 
 db.init_app(app)
 

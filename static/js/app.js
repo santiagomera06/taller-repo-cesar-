@@ -116,40 +116,39 @@ function obtenerGenero(id){
  * una petición al backend para
  * agregar una película.
  */
-function agregarPelicula(){
-    if (validarPelicula()){
-        url = "/pelicula/"
-        const pelicula={
-            codigo: document.getElementById('txtCodigo').value,
-            titulo: document.getElementById('txtTitulo').value,
-            protagonista: document.getElementById('txtProtagonista').value,
-            duracion: document.getElementById('txtDuracion').value,
-            resumen: document.getElementById('txtResumen').value,
-            genero: document.getElementById('cbGenero').value,
-            foto:''
-        }
-        fetch(url, {
-            method: "POST",
-            body: JSON.stringify(pelicula),
-            headers: {
-                "Content-Type": "application/json",
-            }
-        })
-        .then(respuesta => respuesta.json())
-        .then(resultado => {
-            if (resultado.estado) {
-            location.href = "/peliculas/"
-            }else{
-                swal.fire("Add Pelicula", resultado.mensaje, "warning")
-            }
-        })
-            .catch(error => {
-                console.error(error)
-        })
-    }else{
-        swal.fire("Add Pelicula", mensaje, "warning")
-    }
+// Función para enviar los datos del formulario de agregar
+function agregarPelicula() {
+    const formData = new FormData(document.getElementById('frmPelicula'));
     
+    fetch('/pelicula/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.estado) {
+            Swal.fire({
+                title: 'Éxito',
+                text: data.mensaje,
+                icon: 'success'
+            }).then(() => {
+                window.location.href = '/peliculas/';
+            });
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: data.mensaje,
+                icon: 'error'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Error',
+            text: 'Error al agregar la película: ' + error,
+            icon: 'error'
+        });
+    });
 }
 
 
@@ -194,47 +193,40 @@ function agregarGenero(){
  * una película de acuerdo con su id
  * @param {*} id 
  */
-function editarPelicula(id){
-    if(validarPelicula()){
-        const pelicula={
-            id: id,
-            codigo: document.getElementById('txtCodigo').value,
-            titulo: document.getElementById('txtTitulo').value,
-            protagonista: document.getElementById('txtProtagonista').value,
-            duracion: document.getElementById('txtDuracion').value,
-            resumen: document.getElementById('txtResumen').value,
-            genero: document.getElementById('cbGenero').value,
-            foto:''
+// Función para enviar los datos del formulario de editar
+function editarPelicula(id) {
+    const formData = new FormData(document.getElementById('frmPelicula'));
+    formData.append('id', id);
+    
+    fetch('/pelicula/', {
+        method: 'PUT',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.estado) {
+            Swal.fire({
+                title: 'Éxito',
+                text: data.mensaje,
+                icon: 'success'
+            }).then(() => {
+                window.location.href = '/peliculas/';
+            });
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: data.mensaje,
+                icon: 'error'
+            });
         }
-        const url= "/pelicula/"
-        fetch(url, {
-            method: "PUT",
-            body: JSON.stringify(pelicula),
-            headers: {
-                "Content-Type": "application/json",
-            }
-        })
-        .then(respuesta => respuesta.json())
-        .then(resultado => {       
-            if (resultado.estado){
-                Swal.fire({
-                    position: "top-end",
-                    icon: "success",
-                    title: resultado.mensaje,
-                    showConfirmButton: false,
-                    timer: 2000
-                  })
-                  location.href="/peliculas/"
-            }else{
-                swal.fire("Edit Pelicula",resultado.mensaje,"warning")
-            }
-        })
-        .catch(error => {
-            console.error(error)
-        })
-    }else{
-        swal.fire("Edit Pelicula",mensaje,"warning")
-    }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Error',
+            text: 'Error al actualizar la película: ' + error,
+            icon: 'error'
+        });
+    });
 }
 
 /**

@@ -107,45 +107,42 @@ def recuperarContrasena():
         return render_template("frmRecuperarContrasena.html")
     
     try:
-        if recaptcha.verify():
-            user = request.form["txtUser"]
-            correo = request.form["txtCorreo"]
-            usuario = Usuario.objects(usuario=user, correo=correo).first()
+        user = request.form["txtUser"]
+        correo = request.form["txtCorreo"]
+        usuario = Usuario.objects(usuario=user, correo=correo).first()
+        
+        if usuario:
+            # Generar contraseña aleatoria de 8 caracteres
+            caracteres = string.ascii_letters + string.digits
+            nueva_contrasena = ''.join(secrets.choice(caracteres) for _ in range(8))
             
-            if usuario:
-                # Generar contraseña aleatoria de 8 caracteres
-                caracteres = string.ascii_letters + string.digits
-                nueva_contrasena = ''.join(secrets.choice(caracteres) for _ in range(8))
-                
-                # Actualizar la contraseña en la base de datos
-                usuario.update(set__password=nueva_contrasena)
-                
-                # Enviar correo con la nueva contraseña
-                email = yagmail.SMTP("santiagomera051@gmail.com", 
-                                    os.environ.get("PASSWORD-ENVIAR-CORREO"), 
-                                    encoding="utf-8")
-                asunto = "Recuperación de contraseña"
-                mensaje_correo = f"""
-                Cordial saludo <b>{usuario.nombres} {usuario.apellidos}.</b><br><br>
-                Hemos recibido una solicitud para restablecer tu contraseña.<br><br>
-                Tu nueva contraseña temporal es: <b>{nueva_contrasena}</b><br><br>
-                Por seguridad, te recomendamos cambiar esta contraseña después de iniciar sesión.<br><br>
-                Cordialmente,<br><br>
-                <b>Administración<br>Aplicativo Gestión Películas.</b>
-                """
-                
-                thread = threading.Thread(
-                    target=enviarCorreo,
-                    args=(email, [usuario.correo], asunto, mensaje_correo)
-                )
-                thread.start()
-                
-                mensaje = "Se ha enviado una nueva contraseña a tu correo electrónico."
-                return render_template("frmIniciarSesion.html", mensaje=mensaje)
-            else:
-                mensaje = "Usuario o correo electrónico no encontrados."
+            # Actualizar la contraseña en la base de datos
+            usuario.update(set__password=nueva_contrasena)
+            
+            # Enviar correo con la nueva contraseña
+            email = yagmail.SMTP("santiagomera051@gmail.com", 
+                                os.environ.get("PASSWORD-ENVIAR-CORREO"), 
+                                encoding="utf-8")
+            asunto = "Recuperación de contraseña"
+            mensaje_correo = f"""
+            Cordial saludo <b>{usuario.nombres} {usuario.apellidos}.</b><br><br>
+            Hemos recibido una solicitud para restablecer tu contraseña.<br><br>
+            Tu nueva contraseña temporal es: <b>{nueva_contrasena}</b><br><br>
+            Por seguridad, te recomendamos cambiar esta contraseña después de iniciar sesión.<br><br>
+            Cordialmente,<br><br>
+            <b>Administración<br>Aplicativo Gestión Películas.</b>
+            """
+            
+            thread = threading.Thread(
+                target=enviarCorreo,
+                args=(email, [usuario.correo], asunto, mensaje_correo)
+            )
+            thread.start()
+            
+            mensaje = "Se ha enviado una nueva contraseña a tu correo electrónico."
+            return render_template("frmIniciarSesion.html", mensaje=mensaje)
         else:
-            mensaje = "Por favor verifica el reCAPTCHA."
+            mensaje = "Usuario o correo electrónico no encontrados."
     except Exception as error:
         mensaje = f"Error al recuperar contraseña: {str(error)}"
     

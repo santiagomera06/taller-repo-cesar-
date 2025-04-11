@@ -21,6 +21,7 @@
                         <th>Duración</th>
                         <th>Protagonista</th>
                         <th>Género</th>
+                        <th>Foto</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -36,7 +37,14 @@
                                 {% if g.id == p.genero.id %}
                                     <td>{{g.nombre}}</td>
                                 {%endif%}
-                            {%endfor%}                           
+                            {%endfor%}
+                            <td class="text-center">
+                                {% if p.foto %}
+                                <img src="{{ url_for('static', filename='imagenes/' + p.foto) }}" width="50" height="50" class="img-thumbnail">
+                                {% else %}
+                                Sin imagen
+                                {% endif %}
+                            </td>
                             <td class="text-center" style="font-size:3vh">
                                 <a href="/vistaEditarPelicula/{{p.id}}/">
                                     <i class="fa fa-edit text-warning" title="Editar"></i>
@@ -55,7 +63,7 @@
         $(document).ready(function() {
             $('#tbPeliculas').DataTable({
                 language: {
-                    url: 'https://cdn.datatables.net/plug-ins/2.0.3/i18n/es-ES.json'  // URL actualizada
+                    url: 'https://cdn.datatables.net/plug-ins/2.0.3/i18n/es-ES.json'
                 }
             });
         });

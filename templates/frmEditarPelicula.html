@@ -43,6 +43,10 @@
                 <textarea name="txtResumen" id="txtResumen" cols="30" rows="3" class="form-control" 
                 required>{{pelicula.resumen}}</textarea>
             </div>
+            <div class="mb-3">
+                <label class="fw-bold" for="fileFoto">Foto de la película:</label>
+                <input type="file" class="form-control" id="fileFoto" name="fileFoto" accept="image/*">
+            </div>
             <div>
                 <button type="button" class="btn btn-dark" 
                 onclick="editarPelicula('{{pelicula.id}}')">Editar</button>
@@ -58,5 +62,3 @@
 {% block piePagina %} 
     {% include "piePagina.html" %}
 {%endblock %}
-
-

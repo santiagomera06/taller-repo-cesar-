@@ -11,42 +11,103 @@
             </div>
             <div class="mb-3">
                 <label class="fw-bold" for="txtCodigo">Código:</label>
-                <input type="number" name="txtCodigo" id="txtCodigo" class="form-control"  required>
+                <input type="number" name="txtCodigo" id="txtCodigo" class="form-control" required>
             </div>
             <div class="mb-3">
                 <label class="fw-bold" for="txtNombre">Título:</label>
-                <input type="text" name="txtTitulo" id="txtTitulo" class="form-control"  required>
+                <input type="text" name="txtTitulo" id="txtTitulo" class="form-control" required>
             </div>
             <div class="mb-3">
                 <label class="fw-bold" for="txtProtagonista">Protagonista:</label>
-                <input type="text" name="txtProtagonista" id="txtProtagonista" class="form-control"  required>
+                <input type="text" name="txtProtagonista" id="txtProtagonista" class="form-control" required>
             </div>
             <div class="mb-3">
-                <label class="fw-bold" for="txtDuracion">Duracion(minutos):</label>
-                <input type="number" name="txtDuracion" id="txtDuracion" min="30" max="200" class="form-control"  required>
+                <label class="fw-bold" for="txtDuracion">Duración (minutos):</label>
+                <input type="number" name="txtDuracion" id="txtDuracion" min="30" max="200" class="form-control" required>
             </div>
             <div class="mb-3">
                 <label class="fw-bold" for="cbGenero">Género:</label>
-                    <select name="cbGenero" id="cbGenero" class="form-select" required>
-                        <option value="" selected>Seleccione</option>
-                        {%for g in generos %}                            
-                            <option value="{{g.id}}">{{g.nombre}}</option>
-                        {%endfor%}                    
-                    </select>
+                <select name="cbGenero" id="cbGenero" class="form-select" required>
+                    <option value="" selected>Seleccione</option>
+                    {%for g in generos %}                            
+                        <option value="{{g.id}}">{{g.nombre}}</option>
+                    {%endfor%}                    
+                </select>
             </div>            
             <div class="mb-3">
                 <label class="fw-bold" for="txtresumen">Resumen:</label>
                 <textarea name="txtResumen" id="txtResumen" cols="30" rows="3" class="form-control" required></textarea>
             </div>
+            <!-- Campo para la imagen con vista previa -->
+            <div class="mb-3">
+                <label class="fw-bold" for="fileFoto">Foto de la película:</label>
+                <div class="mb-2">
+                    <img id="vistaPrevia" src="#" alt="Vista previa de la imagen" class="img-thumbnail d-none" style="max-width: 200px; max-height: 200px;">
+                </div>
+                <input type="file" class="form-control" id="fileFoto" name="fileFoto" accept="image/*" onchange="mostrarVistaPrevia(event)">
+                <small class="text-muted">Formatos aceptados: JPG, PNG, GIF</small>
+            </div>
             <div>
                 <button type="button" class="btn btn-dark" onclick="agregarPelicula()">Agregar</button>
-                <a href="/peliculas/"><button type="button"  class="btn btn-secondary">Cancelar</button></a>
+                <a href="/peliculas/"><button type="button" class="btn btn-secondary">Cancelar</button></a>
             </div>
         </form>
-    </div>       
+    </div>
+
+    <script>
+        // Función para mostrar vista previa de la imagen seleccionada
+        function mostrarVistaPrevia(event) {
+            const input = event.target;
+            const vistaPrevia = document.getElementById('vistaPrevia');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    vistaPrevia.src = e.target.result;
+                    vistaPrevia.classList.remove('d-none');
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Función para enviar los datos del formulario
+        function agregarPelicula() {
+            const formData = new FormData(document.getElementById('frmPelicula'));
+            
+            fetch('/pelicula/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.estado) {
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: data.mensaje,
+                        icon: 'success'
+                    }).then(() => {
+                        window.location.href = '/peliculas/';
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.mensaje,
+                        icon: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error al agregar la película: ' + error,
+                    icon: 'error'
+                });
+            });
+        }
+    </script>
 {%endblock %}
 {% block piePagina %} 
     {% include "piePagina.html" %}
 {%endblock %}
-
-
